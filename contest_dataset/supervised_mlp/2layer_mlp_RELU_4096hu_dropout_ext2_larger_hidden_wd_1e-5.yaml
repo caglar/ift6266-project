@@ -7,19 +7,19 @@
     },
 
     model: !obj:pylearn2.models.mlp.MLP {
-        batch_size: 400,
+        batch_size: 1000,
         layers: [
                  !obj:pylearn2.models.mlp.RectifiedLinear {
                      layer_name: 'h0',
-                     dim: 4000,
-                     sparse_init: 25,
+                     dim: 3000,
+                     sparse_init: 20,
                      max_col_norm: 1.935,
                      sparse_stdev: .005
                  },
                  !obj:pylearn2.models.mlp.RectifiedLinear {
                      layer_name: 'h1',
-                     dim: 4000,
-                     sparse_init: 25,
+                     dim: 3000,
+                     sparse_init: 20,
                      max_col_norm: 1.935,
                      sparse_stdev: .005
                  },
@@ -32,7 +32,7 @@
         nvis: 2304,
     },
     algorithm: !obj:pylearn2.training_algorithms.sgd.SGD {
-        learning_rate: .06,
+        learning_rate: .09,
         init_momentum: .80,
         monitoring_dataset:
         {
@@ -44,9 +44,15 @@
                         preprocessor: !obj:pylearn2.datasets.preprocessing.GlobalContrastNormalization {}
                       },
         },
-        cost: !obj:pylearn2.costs.cost.MethodCost {
+        cost: !obj:pylearn2.costs.cost.SumOfCosts {
+            costs:[ 
+            !obj:pylearn2.costs.cost.MethodCost {
                 method: 'cost_from_X',
                 supervised: 1
+            },
+            !obj:pylearn2.models.mlp.WeightDecay {
+                coeffs: [.00001, .00001, .00001]
+            }]
         },
         termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased {
             channel_name: "valid_y_misclass",
@@ -54,7 +60,7 @@
             N: 100
         },
         update_callbacks: !obj:pylearn2.training_algorithms.sgd.ExponentialDecay {
-            decay_factor: 1.00004,
+            decay_factor: 1.0004,
             min_lr: .000001
         }
     },

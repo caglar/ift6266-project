@@ -7,18 +7,18 @@
     },
 
     model: !obj:pylearn2.models.mlp.MLP {
-        batch_size: 400,
+        batch_size: 250,
         layers: [
                  !obj:pylearn2.models.mlp.RectifiedLinear {
                      layer_name: 'h0',
-                     dim: 4000,
+                     dim: 5000,
                      sparse_init: 25,
                      max_col_norm: 1.935,
                      sparse_stdev: .005
                  },
                  !obj:pylearn2.models.mlp.RectifiedLinear {
                      layer_name: 'h1',
-                     dim: 4000,
+                     dim: 5000,
                      sparse_init: 25,
                      max_col_norm: 1.935,
                      sparse_stdev: .005
@@ -44,9 +44,15 @@
                         preprocessor: !obj:pylearn2.datasets.preprocessing.GlobalContrastNormalization {}
                       },
         },
-        cost: !obj:pylearn2.costs.cost.MethodCost {
+        cost: !obj:pylearn2.costs.cost.SumOfCosts {
+            costs:[ 
+            !obj:pylearn2.costs.cost.MethodCost {
                 method: 'cost_from_X',
                 supervised: 1
+            },
+            !obj:pylearn2.models.mlp.WeightDecay {
+                coeffs: [.0000001, .0000001, .0000001]
+            }]
         },
         termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased {
             channel_name: "valid_y_misclass",
