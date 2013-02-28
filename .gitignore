@@ -59,3 +59,10 @@ LOGS/
 #metadata/data
 *.csv
 *.xml
+
+#Images
+imgs/
+*.png
+*.jpeg
+*.jpg
+*.gif
