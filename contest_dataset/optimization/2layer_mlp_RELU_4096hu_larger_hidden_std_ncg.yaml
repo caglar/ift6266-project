@@ -1,0 +1,82 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:contest_dataset.ContestDataset {
+        which_set: 'train',
+        start: 1,
+        stop: 4000,
+        fit_preprocessor: True,
+        fit_test_preprocessor: True,
+        preprocessor: !obj:pylearn2.datasets.preprocessing.Pipeline {
+                    items: [ 
+                               !obj:pylearn2.datasets.preprocessing.Standardize {}
+                           ]
+                    }
+    },
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h0',
+                     dim: 5000,
+                     sparse_init: 20,
+                     max_col_norm: 1.935,
+                     sparse_stdev: .005
+                 },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h1',
+                     dim: 5000,
+                     sparse_init: 20,
+                     max_col_norm: 1.935,
+                     sparse_stdev: .005
+                 },
+                 !obj:pylearn2.models.mlp.Softmax {
+                     layer_name: 'y',
+                     n_classes: 7,
+                     irange: .005
+                 }
+            ],
+        nvis: 2304,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.bgd.BGD {
+        batch_size: 128,
+        line_search_mode: 'exhaustive',
+        conjugate: 1,
+        monitoring_dataset:
+        {
+            'train' : *train,
+            'valid' : !obj:contest_dataset.ContestDataset {
+                        which_set: 'train',
+                        start: 4000,
+                        stop: 4178,
+                        fit_preprocessor: True,
+                        fit_test_preprocessor: True,
+                        preprocessor:  !obj:pylearn2.datasets.preprocessing.Pipeline {
+                            items: [
+                                       !obj:pylearn2.datasets.preprocessing.Standardize {}
+                                   ]
+                        }
+            }
+        },
+        cost: !obj:pylearn2.costs.cost.SumOfCosts {
+            costs:[ 
+            !obj:pylearn2.costs.cost.MethodCost {
+                method: 'cost_from_X',
+                supervised: 1
+            },
+            !obj:pylearn2.models.mlp.WeightDecay {
+                coeffs: [.00001, .00001, .00001]
+            }]
+        },
+        termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased {
+            channel_name: "valid_y_misclass",
+            prop_decrease: 0.,
+            N: 100
+        },
+    },
+    extensions: [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+             channel_name: 'valid_y_misclass',
+             save_path: "pkls/${PYLEARN2_TRAIN_FILE_FULL_STEM}_best.pkl"
+        },
+    ],
+    save_path: "pkls/${PYLEARN2_TRAIN_FILE_FULL_STEM}.pkl",
+    save_freq: 1
+}
